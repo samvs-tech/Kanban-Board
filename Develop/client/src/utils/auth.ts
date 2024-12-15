@@ -1,9 +1,9 @@
 import { JwtPayload, jwtDecode } from 'jwt-decode';
+import { UserData } from '../interfaces/UserData';
 
 class AuthService {
   getProfile() {
-    const token = this.getToken();
-    return token ? jwtDecode<JwtPayload>(token) : null;
+    return jwtDecode<UserData>(this.getToken());
   }
 
   loggedIn() {
@@ -12,16 +12,18 @@ class AuthService {
   }
   
   isTokenExpired(token: string) {
-    const decodedToken = jwtDecode<JwtPayload>(token);
-    if (!decodedToken.exp) {
-      return true;
+    try {
+      const decoded = jwtDecode<JwtPayload>(token);
+      if (decoded?.exp && decoded?.exp < Date.now() / 1000) {
+        return true;
+      }
+    } catch (err) {
+      return false;
     }
-    const currentTime = Date.now() / 1000;
-    return decodedToken.exp < currentTime;
   }
 
   getToken(): string {
-    const loggedUser = localStorage.getItem('id_token') || '';
+    const loggedUser = localStorage.getItem("id_token") || "";
     return loggedUser;
   }
 
